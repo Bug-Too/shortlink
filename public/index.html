@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shortlink — short links &amp; QR codes</title>
+<meta name="description" content="Paste a link, get a short link and a QR code. Nothing is saved on a server.">
+<meta name="theme-color" content="#0b0b10">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="glow" aria-hidden="true"></div>
+
+<header class="head">
+  <h1 class="wordmark">Short<span>link</span></h1>
+  <p class="tagline">Paste a link. Get a short link and a QR code.</p>
+</header>
+
+<main class="wrap">
+
+  <!-- ---------------------------------------------------------- input -->
+  <section class="card">
+    <textarea id="input" class="input" rows="2" enterkeyhint="go" autocapitalize="off"
+              autocomplete="off" autocorrect="off" spellcheck="false"
+              placeholder="Paste a link…"></textarea>
+
+    <div class="chips">
+      <button id="paste" class="chip" type="button">Paste</button>
+      <button id="clear" class="chip" type="button" hidden>Clear</button>
+      <button id="clean-toggle" class="chip chip-toggle is-on" type="button" aria-pressed="true">
+        Clean tracking junk
+      </button>
+    </div>
+
+    <button id="go" class="cta" type="button">Shorten link</button>
+    <p id="note" class="note" hidden></p>
+  </section>
+
+  <!-- ------------------------------------------------------- shortened -->
+  <section id="result" class="card result" hidden>
+    <p class="label">Your short link</p>
+    <button id="short-url" class="short-url" type="button" title="Tap to copy"></button>
+    <div class="row">
+      <button id="copy" class="btn btn-primary" type="button">Copy</button>
+      <button id="share" class="btn" type="button">Share</button>
+      <a id="open" class="btn" target="_blank" rel="noreferrer noopener">Open</a>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- qr -->
+  <section id="qr-card" class="card qr-card" hidden>
+    <div class="qr-tile">
+      <canvas id="qr" width="512" height="512" aria-label="QR code"></canvas>
+    </div>
+    <p id="qr-for" class="qr-for"></p>
+
+    <div class="swatches" id="swatches" role="group" aria-label="QR colour"></div>
+
+    <div class="row">
+      <button id="save-qr" class="btn" type="button">Save QR</button>
+      <button id="share-qr" class="btn" type="button">Share QR</button>
+    </div>
+    <button id="story" class="btn btn-ghost wide" type="button">Make story image · 1080×1920</button>
+  </section>
+
+  <!-- ---------------------------------------------------------- recent -->
+  <section id="recent-section" class="recent" hidden>
+    <div class="recent-head">
+      <h2>On this device</h2>
+      <button id="forget" class="chip chip-quiet" type="button">Clear</button>
+    </div>
+    <ul id="recent" class="recent-list"></ul>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Nothing is saved on a server. Your history stays in this browser.</p>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<canvas id="scratch" hidden></canvas>
+
+<script src="vendor/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

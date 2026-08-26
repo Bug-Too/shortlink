@@ -1,0 +1,15 @@
+{
+  "name": "shortlink",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Short links and QR codes. Static site, nothing stored on a server.",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.js",
+    "build:vendor": "esbuild node_modules/qrcode/lib/browser.js --bundle --minify --format=iife --global-name=QRCode --outfile=public/vendor/qrcode.min.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "qrcode": "^1.5.4"
+  }
+}
