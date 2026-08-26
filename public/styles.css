@@ -105,7 +105,14 @@ body {
 .btn:hover { border-color: var(--muted); }
 .btn-primary { background: var(--solid); border-color: var(--solid); color: var(--solid-text); }
 .btn-primary:hover { opacity: .88; }
-.btn:disabled { opacity: .5; cursor: default; }
+.btn:disabled { opacity: .55; cursor: default; }
+/* A dimmed solid button reads as muddy; fall back to a quiet outline. */
+.btn-primary:disabled {
+  opacity: 1;
+  background: var(--bg);
+  border-color: var(--line);
+  color: var(--muted);
+}
 .wide { width: 100%; }
 
 .text-btn {
