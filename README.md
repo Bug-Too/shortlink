@@ -1,17 +1,17 @@
 # Shortlink
 
-Paste a link → get a short link and a QR code. Built for a phone, deployable anywhere.
+Paste a link → get a short link and a QR code. One screen, no accounts, no server.
 
-![mobile](https://img.shields.io/badge/mobile-first-fe2c55) ![static](https://img.shields.io/badge/hosting-static-25f4ee)
+Live: <https://bug-too.github.io/shortlink/>
 
 ## What it does
 
 - **Shortens links** through public shorteners (no account, no key).
 - **QR code for anything** — a link, Wi-Fi string, phone number, plain text — drawn in the browser as you type.
-- **Cleans tracking junk** before shortening: `utm_*`, `fbclid`, `igshid`, and the pile TikTok
-  adds to share links (`is_from_webapp`, `sender_device`, `web_id`, …). Toggle it off if you want the raw URL.
-- **Story image, 1080×1920** — a ready-to-post "SCAN ME" card with the QR and the short link,
-  laid out so the bottom stays clear of TikTok's own buttons.
+- **Removes tracking junk** before shortening: `utm_*`, `fbclid`, `igshid`, `si`, and the pile
+  TikTok adds to share links (`is_from_webapp`, `sender_device`, `web_id`, …). Untick it to keep the raw URL.
+- **Poster image, 1080×1350** — a plain white card with the QR, the link and "Scan to open",
+  for printing or posting.
 - **Share sheet** on mobile: share the link or the QR image straight into any app.
 - **Nothing is stored on a server.** Recent links live in the browser only, and clear with one tap.
 
@@ -66,8 +66,8 @@ public/
 serve.js                  local preview server
 ```
 
-Tweak points in `public/app.js`: `PALETTES` (QR colours), `JUNK_PARAMS` (what gets stripped),
-`PROVIDERS` (shortening services), `MAX_HISTORY`.
+Tweak points in `public/app.js`: `JUNK_PARAMS` (what gets stripped), `PROVIDERS`
+(shortening services), `QR_DARK` / `QR_LIGHT` (QR colours), `MAX_HISTORY`.
 
 To rebuild the vendored QR bundle after updating the library:
 

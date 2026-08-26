@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Shortlink — short links &amp; QR codes</title>
 <meta name="description" content="Paste a link, get a short link and a QR code. Nothing is saved on a server.">
-<meta name="theme-color" content="#0b0b10">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0f10" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,14 +15,12 @@
 </head>
 <body>
 
-<div class="glow" aria-hidden="true"></div>
-
-<header class="head">
-  <h1 class="wordmark">Short<span>link</span></h1>
-  <p class="tagline">Paste a link. Get a short link and a QR code.</p>
-</header>
-
 <main class="wrap">
+
+  <header class="head">
+    <h1>Shortlink</h1>
+    <p>Paste a link. Get a short link and a QR code.</p>
+  </header>
 
   <!-- ---------------------------------------------------------- input -->
   <section class="card">
@@ -29,21 +28,21 @@
               autocomplete="off" autocorrect="off" spellcheck="false"
               placeholder="Paste a link…"></textarea>
 
-    <div class="chips">
-      <button id="paste" class="chip" type="button">Paste</button>
-      <button id="clear" class="chip" type="button" hidden>Clear</button>
-      <button id="clean-toggle" class="chip chip-toggle is-on" type="button" aria-pressed="true">
-        Clean tracking junk
-      </button>
+    <div class="under-input">
+      <label class="check">
+        <input id="clean" type="checkbox" checked>
+        <span>Remove tracking junk</span>
+      </label>
+      <button id="paste" class="text-btn" type="button">Paste</button>
     </div>
 
-    <button id="go" class="cta" type="button">Shorten link</button>
+    <button id="go" class="btn btn-primary wide" type="button">Shorten</button>
     <p id="note" class="note" hidden></p>
   </section>
 
   <!-- ------------------------------------------------------- shortened -->
-  <section id="result" class="card result" hidden>
-    <p class="label">Your short link</p>
+  <section id="result" class="card" hidden>
+    <p class="label">Short link</p>
     <button id="short-url" class="short-url" type="button" title="Tap to copy"></button>
     <div class="row">
       <button id="copy" class="btn btn-primary" type="button">Copy</button>
@@ -53,35 +52,33 @@
   </section>
 
   <!-- -------------------------------------------------------------- qr -->
-  <section id="qr-card" class="card qr-card" hidden>
+  <section id="qr-card" class="card" hidden>
+    <p class="label">QR code</p>
     <div class="qr-tile">
       <canvas id="qr" width="512" height="512" aria-label="QR code"></canvas>
     </div>
     <p id="qr-for" class="qr-for"></p>
-
-    <div class="swatches" id="swatches" role="group" aria-label="QR colour"></div>
-
     <div class="row">
-      <button id="save-qr" class="btn" type="button">Save QR</button>
-      <button id="share-qr" class="btn" type="button">Share QR</button>
+      <button id="save-qr" class="btn" type="button">Save</button>
+      <button id="share-qr" class="btn" type="button">Share</button>
     </div>
-    <button id="story" class="btn btn-ghost wide" type="button">Make story image · 1080×1920</button>
+    <p class="centered"><button id="poster" class="text-btn" type="button">Save as poster</button></p>
   </section>
 
   <!-- ---------------------------------------------------------- recent -->
   <section id="recent-section" class="recent" hidden>
     <div class="recent-head">
-      <h2>On this device</h2>
-      <button id="forget" class="chip chip-quiet" type="button">Clear</button>
+      <p class="label">Recent</p>
+      <button id="forget" class="text-btn" type="button">Clear</button>
     </div>
     <ul id="recent" class="recent-list"></ul>
   </section>
 
-</main>
+  <footer class="foot">
+    <p>Nothing is saved on a server. Recent links stay in this browser.</p>
+  </footer>
 
-<footer class="foot">
-  <p>Nothing is saved on a server. Your history stays in this browser.</p>
-</footer>
+</main>
 
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <canvas id="scratch" hidden></canvas>

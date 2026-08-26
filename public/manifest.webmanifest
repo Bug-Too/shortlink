@@ -1,11 +1,11 @@
 {
   "name": "Shortlink",
   "short_name": "Shortlink",
-  "description": "Short links and QR codes, made on your phone.",
+  "description": "Short links and QR codes.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0b0b10",
-  "theme_color": "#0b0b10",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

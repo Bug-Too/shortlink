@@ -5,8 +5,7 @@ const $ = (id) => document.getElementById(id);
 const el = {
   input: $('input'),
   paste: $('paste'),
-  clear: $('clear'),
-  cleanToggle: $('clean-toggle'),
+  clean: $('clean'),
   go: $('go'),
   note: $('note'),
   result: $('result'),
@@ -17,10 +16,9 @@ const el = {
   qrCard: $('qr-card'),
   qr: $('qr'),
   qrFor: $('qr-for'),
-  swatches: $('swatches'),
   saveQr: $('save-qr'),
   shareQr: $('share-qr'),
-  story: $('story'),
+  poster: $('poster'),
   recentSection: $('recent-section'),
   recent: $('recent'),
   forget: $('forget'),
@@ -29,22 +27,17 @@ const el = {
 };
 
 const HISTORY_KEY = 'shortlink.history';
-const THEME_KEY = 'shortlink.swatch';
-const MAX_HISTORY = 30;
+const MAX_HISTORY = 20;
 
-const PALETTES = [
-  { id: 'ink', label: 'Black on white', dark: '#0b0b10', light: '#ffffff' },
-  { id: 'pink', label: 'Pink', dark: '#fe2c55', light: '#ffffff' },
-  { id: 'cyan', label: 'Teal', dark: '#0e7f7c', light: '#ffffff' },
-  { id: 'night', label: 'White on black', dark: '#ffffff', light: '#0b0b10' },
-];
+// Always black on white: it scans from any screen, in either page theme.
+const QR_DARK = '#18181b';
+const QR_LIGHT = '#ffffff';
 
-// Params that only exist to track you. Stripped when the toggle is on.
+// Params that only exist to track you. Stripped when the box is ticked.
 const JUNK_PARAMS = [
   /^utm_/i, /^ga_/i, /^mc_/i, /^pk_/i, /^hsa_/i, /^vero_/i,
   'fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'ttclid',
   'igshid', 'igsh', 'si', 'feature', 'ref_src', 'ref_url',
-  // TikTok share links carry these
   '_t', '_r', '_d', 'is_from_webapp', 'sender_device', 'sender_web_id', 'web_id',
   'share_app_id', 'share_link_id', 'share_item_id', 'share_iid', 'tt_from',
   'u_code', 'ug_btm', 'social_share_type', 'enter_method', 'checksum',
@@ -52,8 +45,6 @@ const JUNK_PARAMS = [
 ];
 
 const state = {
-  clean: true,
-  palette: PALETTES[0],
   qrText: '',
   short: null,
   history: [],
@@ -75,12 +66,14 @@ function note(message, isError = false) {
   el.note.classList.toggle('is-error', Boolean(isError));
 }
 
+// Never rejects: a blocked clipboard should not fail the action that used it.
 async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
     toast('Copied');
     return true;
-  } catch { /* older browsers, or clipboard blocked */ }
+  } catch { /* fall through to the legacy path */ }
+
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -191,13 +184,13 @@ function drawQr(text) {
       width: 512,
       margin: 1,
       errorCorrectionLevel: 'M',
-      color: { dark: state.palette.dark, light: state.palette.light },
+      color: { dark: QR_DARK, light: QR_LIGHT },
     });
     // toCanvas writes inline pixel sizing; let the tile decide instead.
     el.qr.style.width = '100%';
     el.qr.style.height = 'auto';
     el.qrCard.hidden = false;
-    el.qrFor.textContent = state.short === text ? 'Points to your short link' : text;
+    el.qrFor.textContent = state.short === text ? 'Opens your short link' : text;
   } catch {
     el.qrCard.hidden = true;
     note('That is a bit too long for one QR code.', true);
@@ -210,7 +203,7 @@ function qrCanvas(size = 1024) {
     width: size,
     margin: 2,
     errorCorrectionLevel: 'M',
-    color: { dark: state.palette.dark, light: state.palette.light },
+    color: { dark: QR_DARK, light: QR_LIGHT },
   });
   return canvas;
 }
@@ -244,22 +237,7 @@ async function shareOrSave(blob, filename, title) {
   toast('Saved');
 }
 
-/* --------------------------------------------------- story card (1080×1920) */
-
-function roundRect(ctx, x, y, w, h, r) {
-  if (ctx.roundRect) {
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
-    return;
-  }
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
+/* --------------------------------------------------- poster (1080×1350) */
 
 function wrapText(ctx, text, maxWidth) {
   const lines = [];
@@ -276,65 +254,34 @@ function wrapText(ctx, text, maxWidth) {
   return lines.slice(0, 3);
 }
 
-async function makeStoryImage() {
+async function makePoster() {
   const W = 1080;
-  const H = 1920;
+  const H = 1350;
   const canvas = el.scratch;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = '#0b0b10';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
-  const wash = (x, y, r, color) => {
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, color);
-    g.addColorStop(1, 'rgba(11,11,16,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-  };
-  wash(220, 380, 760, 'rgba(37,244,238,.34)');
-  wash(880, 250, 700, 'rgba(254,44,85,.36)');
-  wash(600, 1750, 800, 'rgba(254,44,85,.16)');
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '800 62px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-  ctx.letterSpacing = '10px';
-  ctx.fillText('SCAN ME', W / 2, 520);
-  ctx.letterSpacing = '0px';
-
-  const panel = 760;
-  const px = (W - panel) / 2;
-  const py = 640;
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,.55)';
-  ctx.shadowBlur = 70;
-  ctx.shadowOffsetY = 26;
-  // Always white: the QR paints its own background inside, so the panel is
-  // just a frame that separates the code from the dark story background.
-  ctx.fillStyle = '#ffffff';
-  roundRect(ctx, px, py, panel, panel, 60);
-  ctx.fill();
-  ctx.restore();
-
-  const qr = qrCanvas(1024);
-  const inset = 56;
+  const size = 620;
+  const x = (W - size) / 2;
+  const y = 300;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(qr, px + inset, py + inset, panel - inset * 2, panel - inset * 2);
+  ctx.drawImage(qrCanvas(1024), x, y, size, size);
   ctx.imageSmoothingEnabled = true;
 
-  const label = state.short || state.qrText;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 46px ui-monospace, SFMono-Regular, Menlo, monospace';
-  const lines = wrapText(ctx, label.replace(/^https?:\/\//, ''), W - 180);
-  lines.forEach((line, i) => ctx.fillText(line, W / 2, py + panel + 130 + i * 60));
+  const label = (state.short || state.qrText).replace(/^https?:\/\//, '');
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#18181b';
+  ctx.font = '600 44px ui-monospace, SFMono-Regular, Menlo, monospace';
+  const lines = wrapText(ctx, label, W - 160);
+  lines.forEach((line, i) => ctx.fillText(line, W / 2, y + size + 110 + i * 58));
 
-  // Keep the last 300px clear: that is where TikTok stacks its own buttons.
-  ctx.fillStyle = 'rgba(255,255,255,.5)';
-  ctx.font = '600 34px -apple-system, system-ui, sans-serif';
-  ctx.fillText('point your camera here', W / 2, py + panel + 130 + lines.length * 60 + 40);
+  ctx.fillStyle = '#71717a';
+  ctx.font = '400 32px -apple-system, system-ui, sans-serif';
+  ctx.fillText('Scan to open', W / 2, y + size + 110 + lines.length * 58 + 26);
 
   return canvasBlob(canvas);
 }
@@ -386,7 +333,7 @@ function renderHistory() {
     main.append(short, target);
     main.addEventListener('click', () => {
       state.short = item.short;
-      showResult(item.short, item.url);
+      showResult(item.short);
       drawQr(item.short);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -404,7 +351,7 @@ function renderHistory() {
 
 /* ----------------------------------------------------------------- ui */
 
-function showResult(short, target) {
+function showResult(short) {
   el.shortUrl.textContent = short.replace(/^https?:\/\//, '');
   el.open.href = short;
   el.result.hidden = false;
@@ -421,25 +368,21 @@ function showResult(short, target) {
     }
     copyText(short);
   };
-  el.result.dataset.target = target;
 }
 
 function refreshInputState() {
   const text = el.input.value.trim();
-  el.clear.hidden = !text;
-  el.go.disabled = !text;
 
   if (!text) {
+    el.go.disabled = true;
     note('');
     drawQr('');
     return;
   }
 
   const url = parseUrl(text);
-  el.go.textContent = url ? 'Shorten link' : 'Not a link';
   el.go.disabled = !url;
-  if (!url) note('QR code below works for any text.');
-  else note('');
+  note(url ? '' : 'Not a link — the QR code below still works.');
 
   if (state.short !== text) state.short = null;
   drawQr(url ? url.toString() : text);
@@ -450,7 +393,7 @@ async function handleShorten() {
   if (!url) return;
 
   let target = url.toString();
-  if (state.clean) {
+  if (el.clean.checked) {
     const { url: cleaned, removed } = stripJunk(url);
     target = cleaned.toString();
     if (removed) toast(`Removed ${removed} tracking bit${removed === 1 ? '' : 's'}`);
@@ -463,7 +406,7 @@ async function handleShorten() {
   try {
     const short = await shorten(target);
     state.short = short;
-    showResult(short, target);
+    showResult(short);
     drawQr(short);
     remember(short, target);
     await copyText(short);
@@ -471,35 +414,11 @@ async function handleShorten() {
     note('Could not make a short link right now. Check your connection and try again.', true);
   } finally {
     el.go.disabled = false;
-    el.go.textContent = 'Shorten link';
+    el.go.textContent = 'Shorten';
   }
 }
 
 /* --------------------------------------------------------------- wiring */
-
-function buildSwatches() {
-  const saved = localStorage.getItem(THEME_KEY);
-  state.palette = PALETTES.find((p) => p.id === saved) ?? PALETTES[0];
-
-  for (const palette of PALETTES) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'swatch';
-    button.title = palette.label;
-    button.setAttribute('aria-label', palette.label);
-    button.style.background = palette.light;
-    button.style.setProperty('--fg', palette.dark);
-    button.classList.toggle('is-on', palette.id === state.palette.id);
-    button.addEventListener('click', () => {
-      state.palette = palette;
-      try { localStorage.setItem(THEME_KEY, palette.id); } catch { /* ignore */ }
-      for (const other of el.swatches.children) other.classList.remove('is-on');
-      button.classList.add('is-on');
-      drawQr(state.qrText);
-    });
-    el.swatches.append(button);
-  }
-}
 
 el.input.addEventListener('input', refreshInputState);
 el.input.addEventListener('keydown', (event) => {
@@ -510,14 +429,6 @@ el.input.addEventListener('keydown', (event) => {
 });
 
 el.go.addEventListener('click', handleShorten);
-
-el.clear.addEventListener('click', () => {
-  el.input.value = '';
-  state.short = null;
-  el.result.hidden = true;
-  refreshInputState();
-  el.input.focus();
-});
 
 el.paste.addEventListener('click', async () => {
   try {
@@ -531,30 +442,21 @@ el.paste.addEventListener('click', async () => {
   }
 });
 
-el.cleanToggle.addEventListener('click', () => {
-  state.clean = !state.clean;
-  el.cleanToggle.classList.toggle('is-on', state.clean);
-  el.cleanToggle.setAttribute('aria-pressed', String(state.clean));
-});
-
 el.saveQr.addEventListener('click', async () => {
-  const blob = await canvasBlob(qrCanvas(1024));
-  downloadBlob(blob, 'qr-code.png');
+  downloadBlob(await canvasBlob(qrCanvas(1024)), 'qr-code.png');
   toast('Saved');
 });
 
 el.shareQr.addEventListener('click', async () => {
-  const blob = await canvasBlob(qrCanvas(1024));
-  await shareOrSave(blob, 'qr-code.png', 'QR code');
+  await shareOrSave(await canvasBlob(qrCanvas(1024)), 'qr-code.png', 'QR code');
 });
 
-el.story.addEventListener('click', async () => {
-  el.story.disabled = true;
+el.poster.addEventListener('click', async () => {
+  el.poster.disabled = true;
   try {
-    const blob = await makeStoryImage();
-    await shareOrSave(blob, 'scan-me.png', 'Scan me');
+    await shareOrSave(await makePoster(), 'qr-poster.png', 'QR code');
   } finally {
-    el.story.disabled = false;
+    el.poster.disabled = false;
   }
 });
 
@@ -567,5 +469,4 @@ el.forget.addEventListener('click', () => {
 
 loadHistory();
 renderHistory();
-buildSwatches();
 refreshInputState();
